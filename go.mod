@@ -1,4 +1,4 @@
-module github.com/MarcoAvendano/cli-jira-git-workflow
+module github.com/MarcoAvendano/jitrack
 
 go 1.26.5
 

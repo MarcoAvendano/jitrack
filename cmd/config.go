@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/config"
-	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/gitops"
+	"github.com/MarcoAvendano/jitrack/internal/config"
+	"github.com/MarcoAvendano/jitrack/internal/gitops"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +13,7 @@ var configRepoFlag bool
 
 var configCmd = &cobra.Command{
 	Use:   "config",
-	Short: "Manage sr-cli configuration (JSON files, editable by hand too)",
+	Short: "Manage jitrack configuration (JSON files, editable by hand too)",
 }
 
 var configSetCmd = &cobra.Command{

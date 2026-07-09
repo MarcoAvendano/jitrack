@@ -5,9 +5,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/gitops"
-	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/jira"
-	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/ticket"
+	"github.com/MarcoAvendano/jitrack/internal/gitops"
+	"github.com/MarcoAvendano/jitrack/internal/jira"
+	"github.com/MarcoAvendano/jitrack/internal/ticket"
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 )

@@ -11,7 +11,7 @@ func tempGlobal(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", dir)
-	return filepath.Join(dir, "sr-cli", GlobalFileName)
+	return filepath.Join(dir, "jitrack", GlobalFileName)
 }
 
 func TestSetAndLoadMerge(t *testing.T) {
@@ -50,7 +50,7 @@ func TestSetAndLoadMerge(t *testing.T) {
 
 func TestEnvOverride(t *testing.T) {
 	tempGlobal(t)
-	t.Setenv("SR_JIRA_TOKEN", "env-token")
+	t.Setenv("JITRACK_JIRA_TOKEN", "env-token")
 	c, err := Load("")
 	if err != nil {
 		t.Fatal(err)

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/config"
-	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/github"
-	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/jira"
+	"github.com/MarcoAvendano/jitrack/internal/config"
+	"github.com/MarcoAvendano/jitrack/internal/github"
+	"github.com/MarcoAvendano/jitrack/internal/jira"
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 )

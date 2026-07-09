@@ -1,10 +1,10 @@
-// Package config loads and writes sr-cli configuration.
+// Package config loads and writes jitrack configuration.
 //
-// Configuration is JSON in two layers — global ~/.config/sr-cli/config.json
-// and per-repo .sr-cli.json — merged so that repo values override global
-// ones, and env vars (SR_JIRA_TOKEN, SR_GITHUB_TOKEN) override both.
+// Configuration is JSON in two layers — global ~/.config/jitrack/config.json
+// and per-repo .jitrack.json — merged so that repo values override global
+// ones, and env vars (JITRACK_JIRA_TOKEN, JITRACK_GITHUB_TOKEN) override both.
 // Keys are addressed with dotted paths (e.g. "jira.url") both in the
-// `sr-cli config` commands and internally.
+// `jitrack config` commands and internally.
 package config
 
 import (
@@ -18,7 +18,7 @@ import (
 
 const (
 	GlobalFileName = "config.json"
-	RepoFileName   = ".sr-cli.json"
+	RepoFileName   = ".jitrack.json"
 )
 
 // staticKeys are the fixed configuration keys. branch_prefixes.* and
@@ -46,8 +46,8 @@ var defaults = map[string]string{
 }
 
 var envKeys = map[string]string{
-	"SR_JIRA_TOKEN":   "jira.token",
-	"SR_GITHUB_TOKEN": "github.token",
+	"JITRACK_JIRA_TOKEN":   "jira.token",
+	"JITRACK_GITHUB_TOKEN": "github.token",
 }
 
 // Config is the merged view of all layers. Sources records, per key,
@@ -89,7 +89,7 @@ func GlobalPath() (string, error) {
 		}
 		base = filepath.Join(home, ".config")
 	}
-	return filepath.Join(base, "sr-cli", GlobalFileName), nil
+	return filepath.Join(base, "jitrack", GlobalFileName), nil
 }
 
 // Load merges defaults, the global file, the repo file (rooted at repoDir,

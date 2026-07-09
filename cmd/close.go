@@ -3,11 +3,11 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/config"
-	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/github"
-	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/gitops"
-	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/jira"
-	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/ticket"
+	"github.com/MarcoAvendano/jitrack/internal/config"
+	"github.com/MarcoAvendano/jitrack/internal/github"
+	"github.com/MarcoAvendano/jitrack/internal/gitops"
+	"github.com/MarcoAvendano/jitrack/internal/jira"
+	"github.com/MarcoAvendano/jitrack/internal/ticket"
 	"github.com/spf13/cobra"
 )
 

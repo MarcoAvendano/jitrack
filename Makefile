@@ -1,4 +1,4 @@
-BINARY := sr-cli
+BINARY := jitrack
 INSTALL_DIR := /opt/homebrew/bin
 
 .PHONY: build test install clean

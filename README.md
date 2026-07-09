@@ -1,10 +1,10 @@
-# sr-cli
+# jitrack
 
-Sync your git workflow with Jira tickets. Two commands cover the repetitive parts of starting and shipping a ticket:
+Sync your git workflow with Jira tickets. Three commands automate the repetitive parts of starting, shipping, and closing a ticket:
 
-- **`sr-cli start SR-123`** — asks which branch prefix to use (`feature`/`fix`/`hotfix`/`chore`, preselected from the Jira issue type), creates the branch off the base branch (e.g. `feature/SR-123-fix-login-redirect`), moves the ticket to *In Progress*, and comments the branch name on it.
-- **`sr-cli push [SR-123]`** — commits your **staged** changes (prompting for a message, auto-prefixed `SR-123:`), pushes the branch, opens a pull request into the base branch (or reuses the open one), and comments the PR link on the ticket. The ticket ID is inferred from the branch name when omitted.
-- **`sr-cli close [SR-123]`** — once the ticket's PR is merged/closed (it refuses while the PR is still open), moves the ticket onward (default *Ready to QA*) and switches your local checkout back to the base branch. The ticket ID is inferred from the branch name when omitted.
+- **`jitrack start TICKET-123`** — asks which branch prefix to use (`feature`/`fix`/`hotfix`/`chore`, preselected from the Jira issue type), creates the branch off the base branch (e.g. `feature/TICKET-123-fix-login-redirect`), moves the ticket to *In Progress*, and comments the branch name on it.
+- **`jitrack push [TICKET-123]`** — commits your **staged** changes (prompting for a message, auto-prefixed `TICKET-123:`), pushes the branch, opens a pull request into the base branch (or reuses the open one), and comments the PR link on the ticket. The ticket ID is inferred from the branch name when omitted.
+- **`jitrack close [TICKET-123]`** — once the ticket's PR is merged/closed (it refuses while the PR is still open), moves the ticket onward (default *Ready to QA*) and switches your local checkout back to the base branch. The ticket ID is inferred from the branch name when omitted.
 
 ## Install
 
@@ -19,32 +19,32 @@ make install   # builds and copies to ~/bin (make sure it's on your PATH)
 Interactive (validates credentials live):
 
 ```sh
-sr-cli init
+jitrack init
 ```
 
 Or non-interactive:
 
 ```sh
-sr-cli config set jira.url https://yourteam.atlassian.net
-sr-cli config set jira.email you@example.com
-sr-cli config set jira.token <token>     # https://id.atlassian.com/manage-profile/security/api-tokens
-sr-cli config set github.token <token>   # https://github.com/settings/tokens — needs Pull requests read/write and Contents read
+jitrack config set jira.url https://yourteam.atlassian.net
+jitrack config set jira.email you@example.com
+jitrack config set jira.token <token>     # https://id.atlassian.com/manage-profile/security/api-tokens
+jitrack config set github.token <token>   # https://github.com/settings/tokens — needs Pull requests read/write and Contents read
 ```
 
-Tokens can also come from the environment: `SR_JIRA_TOKEN`, `SR_GITHUB_TOKEN`.
+Tokens can also come from the environment: `JITRACK_JIRA_TOKEN`, `JITRACK_GITHUB_TOKEN`.
 
 Inspect the effective configuration (tokens masked, source of each value shown):
 
 ```sh
-sr-cli config list
-sr-cli config get jira.url
+jitrack config list
+jitrack config get jira.url
 ```
 
 ## Configuration
 
 Two JSON layers, merged (repo overrides global). Edit the files by hand or use `sr-cli config set` — they're interchangeable.
 
-**Global** `~/.config/sr-cli/config.json` (created with mode 0600):
+**Global** `~/.config/jitrack/config.json` (created with mode 0600):
 
 ```json
 {
@@ -53,7 +53,7 @@ Two JSON layers, merged (repo overrides global). Edit the files by hand or use `
 }
 ```
 
-**Per-repo** `.sr-cli.json` at the repo root (optional, safe to commit — don't put tokens here). Write with `sr-cli config set --repo <key> <value>`:
+**Per-repo** `.jitrack.json` at the repo root (optional, safe to commit — don't put tokens here). Write with `jitrack config set --repo <key> <value>`:
 
 ```json
 {
@@ -73,6 +73,8 @@ Everything has defaults (shown above except `github.owner`/`repo`, which are aut
 | `transitions.start` | `In Progress` | Where `start` moves the ticket — matches a transition **name** ("Start work") or the **status it leads to** ("In Progress"), case-insensitive |
 | `transitions.close` | `Ready to QA` | Where `close` moves the ticket once its PR is merged/closed — same name-or-status matching |
 | `github.api_url` | `https://api.github.com` | Change for GitHub Enterprise |
+| `github.owner` | (auto-detected from origin remote) | GitHub organization or username |
+| `github.repo` | (auto-detected from origin remote) | Repository name |
 
 ## Development
 

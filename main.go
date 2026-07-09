@@ -1,6 +1,6 @@
 package main
 
-import "github.com/MarcoAvendano/cli-jira-git-workflow/cmd"
+import "github.com/MarcoAvendano/jitrack/cmd"
 
 func main() {
 	cmd.Execute()
