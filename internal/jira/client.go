@@ -13,7 +13,7 @@ import (
 )
 
 type Client struct {
-	BaseURL string // e.g. https://storyrocket.atlassian.net
+	BaseURL string // e.g. https://yourteam.atlassian.net
 	Email   string
 	Token   string
 	http    *http.Client

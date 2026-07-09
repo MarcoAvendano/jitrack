@@ -59,7 +59,7 @@ Two JSON layers, merged (repo overrides global). Edit the files by hand or use `
   "base_branch": "main",
   "branch_prefixes": { "Bug": "bugfix", "default": "feature" },
   "transitions": { "start": "In Progress" },
-  "github": { "owner": "Team-Storyrocket", "repo": "storyrocket-react" }
+  "github": { "owner": "my-org", "repo": "my-repo" }
 }
 ```
 
