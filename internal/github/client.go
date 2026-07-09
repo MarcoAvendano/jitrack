@@ -28,10 +28,18 @@ func NewClient(apiURL, token string) *Client {
 }
 
 type PullRequest struct {
-	Number  int    `json:"number"`
-	HTMLURL string `json:"html_url"`
-	Title   string `json:"title"`
+	Number   int    `json:"number"`
+	HTMLURL  string `json:"html_url"`
+	Title    string `json:"title"`
+	State    string `json:"state"`     // open | closed
+	MergedAt string `json:"merged_at"` // empty when not merged
+	Head     struct {
+		Ref string `json:"ref"`
+	} `json:"head"`
 }
+
+// Merged reports whether a closed PR was merged (vs. just closed).
+func (pr *PullRequest) Merged() bool { return pr.MergedAt != "" }
 
 var remoteRe = regexp.MustCompile(`^(?:git@[^:]+:|https://[^/]+/|ssh://git@[^/]+/)([^/]+)/(.+?)(?:\.git)?$`)
 
@@ -103,6 +111,17 @@ func (c *Client) FindOpenPR(owner, repo, branch string) (*PullRequest, error) {
 		return nil, nil
 	}
 	return &prs[0], nil
+}
+
+// ListPRs returns the repo's pull requests, newest first.
+// state is "open", "closed", or "all".
+func (c *Client) ListPRs(owner, repo, state string) ([]PullRequest, error) {
+	var prs []PullRequest
+	path := fmt.Sprintf("/repos/%s/%s/pulls?state=%s&per_page=100&sort=created&direction=desc", owner, repo, state)
+	if err := c.do("GET", path, nil, &prs); err != nil {
+		return nil, err
+	}
+	return prs, nil
 }
 
 // CreatePR opens a pull request from head into base.

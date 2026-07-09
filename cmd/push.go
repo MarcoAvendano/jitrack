@@ -88,17 +88,9 @@ var pushCmd = &cobra.Command{
 		}
 		fmt.Printf("✔ pushed %s to origin\n", branch)
 
-		// Resolve owner/repo: config override first, else parse the remote.
-		owner, repo := cfg.Get("github.owner"), cfg.Get("github.repo")
-		if owner == "" || repo == "" {
-			remote, err := gitops.RemoteURL()
-			if err != nil {
-				return err
-			}
-			owner, repo, err = github.ParseRemoteURL(remote)
-			if err != nil {
-				return err
-			}
+		owner, repo, err := resolveRepo(cfg)
+		if err != nil {
+			return err
 		}
 		gh := github.NewClient(cfg.Get("github.api_url"), cfg.Get("github.token"))
 

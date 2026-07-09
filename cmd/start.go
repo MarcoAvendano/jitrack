@@ -5,7 +5,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/config"
 	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/gitops"
 	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/jira"
 	"github.com/MarcoAvendano/cli-jira-git-workflow/internal/ticket"
@@ -73,7 +72,7 @@ var startCmd = &cobra.Command{
 				return err
 			}
 			fmt.Printf("✔ switched to existing branch %s\n", branch)
-			transitionTicket(jc, cfg, issue)
+			transitionIssue(jc, issue, cfg.Get("transitions.start"))
 			return nil
 		}
 
@@ -97,7 +96,7 @@ var startCmd = &cobra.Command{
 		fmt.Printf("✔ created branch %s from origin/%s\n", branch, base)
 
 		// The branch exists now; Jira hiccups shouldn't fail the command.
-		transitionTicket(jc, cfg, issue)
+		transitionIssue(jc, issue, cfg.Get("transitions.start"))
 		if err := jc.AddComment(key, fmt.Sprintf("Branch created: %s", branch)); err != nil {
 			fmt.Printf("⚠ could not comment on ticket: %v\n", err)
 		} else {
@@ -109,11 +108,10 @@ var startCmd = &cobra.Command{
 	},
 }
 
-// transitionTicket moves the issue to the configured start transition/status,
-// skipping when it's already there. Failures warn instead of aborting — the
-// branch work has already happened.
-func transitionTicket(jc *jira.Client, cfg *config.Config, issue *jira.Issue) {
-	target := cfg.Get("transitions.start")
+// transitionIssue moves the issue to the given transition/status, skipping
+// when it's already there. Failures warn instead of aborting — the git work
+// around it has already happened.
+func transitionIssue(jc *jira.Client, issue *jira.Issue, target string) {
 	if strings.EqualFold(issue.Status, target) {
 		fmt.Printf("✔ %s already in %s\n", issue.Key, issue.Status)
 		return

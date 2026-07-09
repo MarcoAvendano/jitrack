@@ -42,6 +42,7 @@ var defaults = map[string]string{
 	"branch_prefixes.default": "feature",
 	"branch_prefixes.Bug":     "fix",
 	"transitions.start":       "In Progress",
+	"transitions.close":       "Ready to QA",
 }
 
 var envKeys = map[string]string{
@@ -74,7 +75,7 @@ func ValidKey(key string) bool {
 // KnownKeys returns the documented keys, for error messages.
 func KnownKeys() []string {
 	keys := append([]string{}, staticKeys...)
-	keys = append(keys, "branch_prefixes.<IssueType>", "transitions.start")
+	keys = append(keys, "branch_prefixes.<IssueType>", "transitions.start", "transitions.close")
 	return keys
 }
 

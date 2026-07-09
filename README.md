@@ -4,6 +4,7 @@ Sync your git workflow with Jira tickets. Two commands cover the repetitive part
 
 - **`sr-cli start SR-123`** — asks which branch prefix to use (`feature`/`fix`/`hotfix`/`chore`, preselected from the Jira issue type), creates the branch off the base branch (e.g. `feature/SR-123-fix-login-redirect`), moves the ticket to *In Progress*, and comments the branch name on it.
 - **`sr-cli push [SR-123]`** — commits your **staged** changes (prompting for a message, auto-prefixed `SR-123:`), pushes the branch, opens a pull request into the base branch (or reuses the open one), and comments the PR link on the ticket. The ticket ID is inferred from the branch name when omitted.
+- **`sr-cli close [SR-123]`** — once the ticket's PR is merged/closed (it refuses while the PR is still open), moves the ticket onward (default *Ready to QA*) and switches your local checkout back to the base branch. The ticket ID is inferred from the branch name when omitted.
 
 ## Install
 
@@ -70,6 +71,7 @@ Everything has defaults (shown above except `github.owner`/`repo`, which are aut
 | `base_branch` | `main` | Branch that `start` forks from and PRs target |
 | `branch_prefixes.<IssueType>` | `Bug: fix`, `default: feature` | Jira issue type → branch prefix **preselected** in the `start` prompt |
 | `transitions.start` | `In Progress` | Where `start` moves the ticket — matches a transition **name** ("Start work") or the **status it leads to** ("In Progress"), case-insensitive |
+| `transitions.close` | `Ready to QA` | Where `close` moves the ticket once its PR is merged/closed — same name-or-status matching |
 | `github.api_url` | `https://api.github.com` | Change for GitHub Enterprise |
 
 ## Development
