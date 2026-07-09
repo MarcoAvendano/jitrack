@@ -36,8 +36,8 @@ type PullRequest struct {
 var remoteRe = regexp.MustCompile(`^(?:git@[^:]+:|https://[^/]+/|ssh://git@[^/]+/)([^/]+)/(.+?)(?:\.git)?$`)
 
 // ParseRemoteURL extracts owner and repo from an SSH or HTTPS git remote,
-// e.g. git@github.com:Team-Storyrocket/storyrocket-react.git or
-// https://github.com/Team-Storyrocket/storyrocket-react.
+// e.g. git@github.com:my-org/my-repo.git or
+// https://github.com/my-org/my-repo.
 func ParseRemoteURL(url string) (owner, repo string, err error) {
 	m := remoteRe.FindStringSubmatch(strings.TrimSpace(url))
 	if m == nil {
