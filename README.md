@@ -42,7 +42,7 @@ jitrack config get jira.url
 
 ## Configuration
 
-Two JSON layers, merged (repo overrides global). Edit the files by hand or use `sr-cli config set` — they're interchangeable.
+Two JSON layers, merged (repo overrides global). Edit the files by hand or use `jitrack config set` — they're interchangeable.
 
 **Global** `~/.config/jitrack/config.json` (created with mode 0600):
 

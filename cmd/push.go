@@ -32,7 +32,7 @@ var pushCmd = &cobra.Command{
 				return err
 			}
 		} else if key = ticket.ExtractFromBranch(branch); key == "" {
-			return fmt.Errorf("no ticket ID given and none found in branch %q — run `sr-cli push TICKET-123`", branch)
+			return fmt.Errorf("no ticket ID given and none found in branch %q — run `jitrack push TICKET-123`", branch)
 		}
 
 		staged, err := gitops.HasStagedChanges()

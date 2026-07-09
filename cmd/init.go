@@ -86,7 +86,7 @@ var initCmd = &cobra.Command{
 			}
 		}
 		fmt.Printf("✔ config saved to %s\n", path)
-		fmt.Println("\nYou're set. Try: sr-cli start TICKET-123")
+		fmt.Println("\nYou're set. Try: jitrack start TICKET-123")
 		return nil
 	},
 }

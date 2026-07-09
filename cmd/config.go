@@ -89,7 +89,7 @@ func loadConfig() (*config.Config, error) {
 }
 
 func init() {
-	configSetCmd.Flags().BoolVar(&configRepoFlag, "repo", false, "write to the repo's .sr-cli.json instead of the global config")
+	configSetCmd.Flags().BoolVar(&configRepoFlag, "repo", false, "write to the repo's .jitrack.json instead of the global config")
 	configCmd.AddCommand(configSetCmd, configGetCmd, configListCmd)
 	rootCmd.AddCommand(configCmd)
 }

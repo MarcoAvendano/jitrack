@@ -166,7 +166,7 @@ func (c *Config) RequireJira() error {
 		}
 	}
 	if len(missing) > 0 {
-		return fmt.Errorf("jira connection not configured (missing %s) — run `sr-cli init` or `sr-cli config set <key> <value>`", strings.Join(missing, ", "))
+		return fmt.Errorf("jira connection not configured (missing %s) — run `jitrack init` or `jitrack config set <key> <value>`", strings.Join(missing, ", "))
 	}
 	return nil
 }
@@ -174,7 +174,7 @@ func (c *Config) RequireJira() error {
 // RequireGitHub validates that the GitHub connection is configured.
 func (c *Config) RequireGitHub() error {
 	if c.Get("github.token") == "" {
-		return fmt.Errorf("github connection not configured (missing github.token) — run `sr-cli init` or `sr-cli config set github.token <token>`")
+		return fmt.Errorf("github connection not configured (missing github.token) — run `jitrack init` or `jitrack config set github.token <token>`")
 	}
 	return nil
 }

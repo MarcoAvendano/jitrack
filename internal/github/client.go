@@ -1,5 +1,5 @@
 // Package github is a thin client for the GitHub REST API, covering only
-// what sr-cli needs: find and create pull requests.
+// what jitrack needs: find and create pull requests.
 package github
 
 import (

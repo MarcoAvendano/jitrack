@@ -31,7 +31,7 @@ var closeCmd = &cobra.Command{
 				return err
 			}
 		} else if key = ticket.ExtractFromBranch(branch); key == "" {
-			return fmt.Errorf("no ticket ID given and none found in branch %q — run `sr-cli close TICKET-123`", branch)
+			return fmt.Errorf("no ticket ID given and none found in branch %q — run `jitrack close TICKET-123`", branch)
 		}
 
 		cfg, err := loadConfig()

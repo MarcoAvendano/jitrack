@@ -1,5 +1,5 @@
 // Package jira is a thin client for the Jira Cloud REST API v3, covering
-// only what sr-cli needs: read an issue, transition it, comment on it.
+// only what jitrack needs: read an issue, transition it, comment on it.
 package jira
 
 import (
