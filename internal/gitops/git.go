@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -110,6 +111,16 @@ func Commit(message string) error {
 // Push pushes the current branch to origin, setting upstream.
 func Push() error {
 	return runInteractive("push", "-u", "origin", "HEAD")
+}
+
+// CommitsAhead returns how many commits HEAD has that ref does not
+// (git rev-list --count ref..HEAD).
+func CommitsAhead(ref string) (int, error) {
+	out, err := run("rev-list", "--count", ref+"..HEAD")
+	if err != nil {
+		return 0, err
+	}
+	return strconv.Atoi(out)
 }
 
 // BranchPushed reports whether the current branch has an upstream on origin.

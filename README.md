@@ -3,7 +3,7 @@
 Sync your git workflow with Jira tickets. Three commands automate the repetitive parts of starting, shipping, and closing a ticket:
 
 - **`jitrack start TICKET-123`** — asks which branch prefix to use (`feature`/`fix`/`hotfix`/`chore`, preselected from the Jira issue type), creates the branch off the base branch (e.g. `feature/TICKET-123-fix-login-redirect`), moves the ticket to *In Progress*, and comments the branch name on it.
-- **`jitrack push [TICKET-123]`** — commits your **staged** changes (prompting for a message, auto-prefixed `TICKET-123:`), pushes the branch, opens a pull request into the base branch (or reuses the open one), and comments the PR link on the ticket. The ticket ID is inferred from the branch name when omitted.
+- **`jitrack push [TICKET-123]`** — commits your **staged** changes (prompting for a message, auto-prefixed `TICKET-123:`), pushes the branch, opens a pull request into the base branch (or reuses the open one), and comments the PR link on the ticket. With nothing staged it skips the commit step and just pushes your existing commits and ensures the PR — so committing by hand first is fine. The ticket ID is inferred from the branch name when omitted.
 - **`jitrack close [TICKET-123]`** — once the ticket's PR is merged/closed (it refuses while the PR is still open), moves the ticket onward (default *Ready to QA*) and switches your local checkout back to the base branch. The ticket ID is inferred from the branch name when omitted.
 
 ## Install

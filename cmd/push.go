@@ -35,24 +35,28 @@ var pushCmd = &cobra.Command{
 			return fmt.Errorf("no ticket ID given and none found in branch %q — run `jitrack push TICKET-123`", branch)
 		}
 
+		cfg, err := loadConfig()
+		if err != nil {
+			return err
+		}
+
 		staged, err := gitops.HasStagedChanges()
 		if err != nil {
 			return err
 		}
 		if !staged && !gitops.BranchPushed() {
-			// Nothing to commit and the branch was never pushed: there is
-			// nothing to make a PR from either.
-			hint := gitops.StatusSummary()
-			if hint == "" {
-				return fmt.Errorf("nothing staged and no local changes — make some changes first")
+			// No commit to make and no upstream yet — only proceed if the
+			// branch has commits of its own to push (committed by hand).
+			ahead, err := gitops.CommitsAhead("origin/" + cfg.Get("base_branch"))
+			if err == nil && ahead == 0 {
+				hint := gitops.StatusSummary()
+				if hint == "" {
+					return fmt.Errorf("nothing staged and no commits to push — make some changes first")
+				}
+				return fmt.Errorf("nothing staged and no commits to push — stage what you want with `git add`, then retry:\n%s", hint)
 			}
-			return fmt.Errorf("nothing staged for commit — stage what you want with `git add`, then retry:\n%s", hint)
 		}
 
-		cfg, err := loadConfig()
-		if err != nil {
-			return err
-		}
 		if err := cfg.RequireJira(); err != nil {
 			return err
 		}
@@ -79,9 +83,9 @@ var pushCmd = &cobra.Command{
 			}
 			fmt.Printf("✔ committed: %s\n", gitops.HeadSubject())
 		} else {
-			// Branch already pushed once: resume — sync it and make sure
-			// the PR exists (e.g. a previous run failed at the PR step).
-			fmt.Println("nothing staged — ensuring branch is pushed and PR exists")
+			// Commits already exist (made by hand) or the branch was pushed
+			// before: skip the commit step, sync the branch, ensure the PR.
+			fmt.Println("nothing staged — pushing existing commits and ensuring PR exists")
 		}
 		if err := gitops.Push(); err != nil {
 			return err
