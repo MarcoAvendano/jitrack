@@ -92,6 +92,18 @@ func (c *Client) Myself() (string, error) {
 	return me.DisplayName, nil
 }
 
+// AssignToMe assigns the issue to the authenticated user.
+func (c *Client) AssignToMe(key string) error {
+	var me struct {
+		AccountID string `json:"accountId"`
+	}
+	if err := c.do("GET", "/rest/api/3/myself", nil, &me); err != nil {
+		return err
+	}
+	body := map[string]string{"accountId": me.AccountID}
+	return c.do("PUT", "/rest/api/3/issue/"+key+"/assignee", body, nil)
+}
+
 // GetIssue fetches key's summary, issue type, and status.
 func (c *Client) GetIssue(key string) (*Issue, error) {
 	var raw struct {

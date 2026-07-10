@@ -5,14 +5,18 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode"
+
+	"golang.org/x/text/unicode/norm"
 )
 
 const maxSlugLen = 60
 
 var (
-	keyRe      = regexp.MustCompile(`^[A-Z][A-Z0-9]+-[0-9]+$`)
-	extractRe  = regexp.MustCompile(`[A-Z][A-Z0-9]+-[0-9]+`)
-	nonAlnumRe = regexp.MustCompile(`[^a-z0-9]+`)
+	keyRe        = regexp.MustCompile(`^[A-Z][A-Z0-9]+-[0-9]+$`)
+	extractRe    = regexp.MustCompile(`[A-Z][A-Z0-9]+-[0-9]+`)
+	nonAlnumRe   = regexp.MustCompile(`[^a-z0-9]+`)
+	apostropheRe = regexp.MustCompile("['’`]")
 )
 
 // Normalize validates a user-supplied ticket ID, accepting lowercase input
@@ -31,11 +35,14 @@ func ExtractFromBranch(branch string) string {
 	return extractRe.FindString(strings.ToUpper(branch))
 }
 
-// Slugify turns an issue summary into a branch-safe slug: lowercase,
-// runs of non-alphanumerics collapsed to "-", trimmed, truncated at a
-// word boundary to keep branch names readable.
+// Slugify turns an issue summary into a branch-safe slug: accents
+// transliterated (é→e, ñ→n), apostrophes dropped ("don't"→"dont"),
+// lowercase, remaining runs of non-alphanumerics collapsed to "-",
+// trimmed, truncated at a word boundary to keep branch names readable.
 func Slugify(summary string) string {
-	slug := strings.ToLower(summary)
+	slug := stripDiacritics(summary)
+	slug = apostropheRe.ReplaceAllString(slug, "")
+	slug = strings.ToLower(slug)
 	slug = nonAlnumRe.ReplaceAllString(slug, "-")
 	slug = strings.Trim(slug, "-")
 	if len(slug) > maxSlugLen {
@@ -45,6 +52,19 @@ func Slugify(summary string) string {
 		}
 	}
 	return slug
+}
+
+// stripDiacritics decomposes accented characters (NFD) and drops the
+// combining marks, so é→e and ñ→n instead of becoming slug hyphens.
+func stripDiacritics(s string) string {
+	var b strings.Builder
+	b.Grow(len(s))
+	for _, r := range norm.NFD.String(s) {
+		if !unicode.Is(unicode.Mn, r) {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
 }
 
 // Branch builds "<prefix>/<KEY>-<slug>". An empty summary yields just

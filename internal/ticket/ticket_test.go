@@ -48,7 +48,12 @@ func TestSlugify(t *testing.T) {
 	cases := []struct{ in, want string }{
 		{"Fix login redirect", "fix-login-redirect"},
 		{"  [Bug] crash: on save!! ", "bug-crash-on-save"},
-		{"Ünïcode & symbols #42", "n-code-symbols-42"},
+		{"Ünïcode & symbols #42", "unicode-symbols-42"},
+		{"Corrección de sesión", "correccion-de-sesion"},
+		{"Don't break the user's flow", "dont-break-the-users-flow"},
+		{"Café — naïve façade", "cafe-naive-facade"},
+		{"Fix!? the @#$% login &*() flow }{", "fix-the-login-flow"},
+		{"!?@#$%^&*()}{", ""},
 		{"", ""},
 		{"---", ""},
 	}

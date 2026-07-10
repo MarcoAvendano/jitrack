@@ -5,12 +5,15 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/MarcoAvendano/jitrack/internal/config"
 	"github.com/MarcoAvendano/jitrack/internal/gitops"
 	"github.com/MarcoAvendano/jitrack/internal/jira"
 	"github.com/MarcoAvendano/jitrack/internal/ticket"
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 )
+
+var startBaseFlag string
 
 var startCmd = &cobra.Command{
 	Use:   "start TICKET-ID",
@@ -72,6 +75,7 @@ var startCmd = &cobra.Command{
 				return err
 			}
 			fmt.Printf("✔ switched to existing branch %s\n", branch)
+			assignIssue(jc, key)
 			transitionIssue(jc, issue, cfg.Get("transitions.start"))
 			return nil
 		}
@@ -84,7 +88,7 @@ var startCmd = &cobra.Command{
 			return fmt.Errorf("working tree has uncommitted changes — commit or stash them first:\n%s", gitops.StatusSummary())
 		}
 
-		base := cfg.Get("base_branch")
+		base := baseBranch(cfg, startBaseFlag)
 		fmt.Printf("Fetching origin… ")
 		if err := gitops.Fetch(); err != nil {
 			return err
@@ -96,6 +100,7 @@ var startCmd = &cobra.Command{
 		fmt.Printf("✔ created branch %s from origin/%s\n", branch, base)
 
 		// The branch exists now; Jira hiccups shouldn't fail the command.
+		assignIssue(jc, key)
 		transitionIssue(jc, issue, cfg.Get("transitions.start"))
 		if err := jc.AddComment(key, fmt.Sprintf("Branch created: %s", branch)); err != nil {
 			fmt.Printf("⚠ could not comment on ticket: %v\n", err)
@@ -106,6 +111,25 @@ var startCmd = &cobra.Command{
 		fmt.Printf("\nReady to work on %s — %s\n", key, jc.BrowseURL(key))
 		return nil
 	},
+}
+
+// baseBranch resolves the base branch: the --base flag wins, else the
+// configured base_branch (default "main").
+func baseBranch(cfg *config.Config, flag string) string {
+	if flag != "" {
+		return flag
+	}
+	return cfg.Get("base_branch")
+}
+
+// assignIssue assigns the issue to the authenticated user. Failures warn
+// instead of aborting — the git work around it has already happened.
+func assignIssue(jc *jira.Client, key string) {
+	if err := jc.AssignToMe(key); err != nil {
+		fmt.Printf("⚠ could not assign %s to you: %v\n", key, err)
+	} else {
+		fmt.Printf("✔ %s assigned to you\n", key)
+	}
 }
 
 // transitionIssue moves the issue to the given transition/status, skipping
@@ -124,5 +148,6 @@ func transitionIssue(jc *jira.Client, issue *jira.Issue, target string) {
 }
 
 func init() {
+	startCmd.Flags().StringVar(&startBaseFlag, "base", "", "branch to base the new branch on (defaults to base_branch from config)")
 	rootCmd.AddCommand(startCmd)
 }
