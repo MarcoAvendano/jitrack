@@ -11,6 +11,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var closeBaseFlag string
+
 var closeCmd = &cobra.Command{
 	Use:   "close [TICKET-ID]",
 	Short: "After the ticket's PR is closed: move the ticket onward (e.g. Ready to QA) and switch back to the base branch",
@@ -81,7 +83,7 @@ var closeCmd = &cobra.Command{
 		}
 		transitionIssue(jc, issue, cfg.Get("transitions.close"))
 
-		base := cfg.Get("base_branch")
+		base := baseBranch(cfg, closeBaseFlag)
 		if branch == base {
 			fmt.Printf("✔ already on %s\n", base)
 			return nil
@@ -109,5 +111,6 @@ func resolveRepo(cfg *config.Config) (string, string, error) {
 }
 
 func init() {
+	closeCmd.Flags().StringVar(&closeBaseFlag, "base", "", "branch to switch back to (defaults to base_branch from config)")
 	rootCmd.AddCommand(closeCmd)
 }

@@ -12,6 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var pushBaseFlag string
+
 var pushCmd = &cobra.Command{
 	Use:   "push [TICKET-ID]",
 	Short: "Commit staged changes, push the branch, and open (or reuse) a pull request",
@@ -39,6 +41,7 @@ var pushCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		base := baseBranch(cfg, pushBaseFlag)
 
 		staged, err := gitops.HasStagedChanges()
 		if err != nil {
@@ -47,7 +50,7 @@ var pushCmd = &cobra.Command{
 		if !staged && !gitops.BranchPushed() {
 			// No commit to make and no upstream yet — only proceed if the
 			// branch has commits of its own to push (committed by hand).
-			ahead, err := gitops.CommitsAhead("origin/" + cfg.Get("base_branch"))
+			ahead, err := gitops.CommitsAhead("origin/" + base)
 			if err == nil && ahead == 0 {
 				hint := gitops.StatusSummary()
 				if hint == "" {
@@ -112,7 +115,6 @@ var pushCmd = &cobra.Command{
 		if issue, err := jc.GetIssue(key); err == nil && issue.Summary != "" {
 			title = fmt.Sprintf("%s: %s", key, issue.Summary)
 		}
-		base := cfg.Get("base_branch")
 		body := fmt.Sprintf("Jira ticket: [%s](%s)", key, jc.BrowseURL(key))
 		pr, err = gh.CreatePR(owner, repo, title, branch, base, body)
 		if err != nil {
@@ -130,5 +132,6 @@ var pushCmd = &cobra.Command{
 }
 
 func init() {
+	pushCmd.Flags().StringVar(&pushBaseFlag, "base", "", "branch the pull request targets (defaults to base_branch from config)")
 	rootCmd.AddCommand(pushCmd)
 }

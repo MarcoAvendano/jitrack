@@ -1,6 +1,36 @@
 package jira
 
-import "testing"
+import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
+
+func TestAssignToMe(t *testing.T) {
+	var gotBody map[string]string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == "GET" && r.URL.Path == "/rest/api/3/myself":
+			json.NewEncoder(w).Encode(map[string]string{"accountId": "acc-123"})
+		case r.Method == "PUT" && r.URL.Path == "/rest/api/3/issue/KAN-1/assignee":
+			json.NewDecoder(r.Body).Decode(&gotBody)
+			w.WriteHeader(http.StatusNoContent)
+		default:
+			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer srv.Close()
+
+	c := NewClient(srv.URL, "me@example.com", "token")
+	if err := c.AssignToMe("KAN-1"); err != nil {
+		t.Fatal(err)
+	}
+	if gotBody["accountId"] != "acc-123" {
+		t.Errorf("assignee body = %v, want accountId acc-123", gotBody)
+	}
+}
 
 func TestPickTransition(t *testing.T) {
 	// Modeled on the user's board: transition names differ from statuses.
