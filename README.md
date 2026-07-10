@@ -77,10 +77,10 @@ jitrack start KAN-456 --base=prod   # e.g. a hotfix cut from production
 
 Ship your work. The ticket ID is inferred from the current branch name when omitted.
 
-1. With **staged** changes: prompts for a commit message (auto-prefixed `KEY:`, which enables Jira smart-commit linking) and commits.
+1. With **staged** changes: asks for the commit type (`feat`/`fix`/`hotfix`/`chore`, preselected from the branch prefix) and the message, then commits as `<type>: KEY <message>` — e.g. `feat: KAN-123 adding new module`. The ticket key in the message enables Jira smart-commit linking.
 2. With **nothing staged**: skips the commit step and just pushes your existing commits — committing by hand first is fine. Errors only if there is also nothing to push.
 3. Pushes the branch to `origin` (sets upstream on first push).
-4. Opens a pull request into the base branch — or reuses the open one, making the command safe to re-run after a failure.
+4. Opens a pull request into the base branch, titled `<type>: KEY <issue summary>` — or reuses the open one, making the command safe to re-run after a failure.
 5. Comments the PR link on the Jira ticket (only when a PR was actually created).
 
 | Option | Description |
@@ -90,8 +90,9 @@ Ship your work. The ticket ID is inferred from the current branch name when omit
 ```
 $ git add internal/auth/session.go
 $ jitrack push
-  Commit message (will be prefixed "KAN-123: "): handle expired sessions
-✔ committed: 1a2b3c4 KAN-123: handle expired sessions
+  Commit type for KAN-123: feat
+  Commit message (will be "feat: KAN-123 <message>"): handle expired sessions
+✔ committed: 1a2b3c4 feat: KAN-123 handle expired sessions
 ✔ pushed feature/KAN-123-fix-login-redirect to origin
 ✔ pull request created: https://github.com/my-org/my-repo/pull/42
 ✔ commented PR link on KAN-123

@@ -67,19 +67,34 @@ var pushCmd = &cobra.Command{
 			return err
 		}
 
+		// Also used for the PR title; in the no-commit path it stays as
+		// inferred from the branch prefix.
+		ctype := commitTypeFromBranch(branch)
+
 		if staged {
+			err = huh.NewSelect[string]().
+				Title(fmt.Sprintf("Commit type for %s", key)).
+				Options(huh.NewOptions("feat", "fix", "hotfix", "chore")...).
+				Value(&ctype).Run()
+			if err != nil {
+				return err
+			}
+
 			var message string
 			err = huh.NewInput().
-				Title(fmt.Sprintf("Commit message (will be prefixed \"%s: \")", key)).
+				Title(fmt.Sprintf("Commit message (will be \"%s: %s <message>\")", ctype, key)).
 				Validate(requireNonEmpty("commit message")).
 				Value(&message).Run()
 			if err != nil {
 				return err
 			}
 			message = strings.TrimSpace(message)
-			if !strings.HasPrefix(strings.ToUpper(message), key+":") {
-				message = key + ": " + message
+			// Drop a hand-typed leading ticket key — the format adds it.
+			if up := strings.ToUpper(message); strings.HasPrefix(up, key) {
+				message = strings.TrimSpace(message[len(key):])
+				message = strings.TrimSpace(strings.TrimPrefix(message, ":"))
 			}
+			message = fmt.Sprintf("%s: %s %s", ctype, key, message)
 
 			if err := gitops.Commit(message); err != nil {
 				return err
@@ -111,9 +126,9 @@ var pushCmd = &cobra.Command{
 			return nil
 		}
 
-		title := key
+		title := fmt.Sprintf("%s: %s", ctype, key)
 		if issue, err := jc.GetIssue(key); err == nil && issue.Summary != "" {
-			title = fmt.Sprintf("%s: %s", key, issue.Summary)
+			title = fmt.Sprintf("%s: %s %s", ctype, key, issue.Summary)
 		}
 		body := fmt.Sprintf("Jira ticket: [%s](%s)", key, jc.BrowseURL(key))
 		pr, err = gh.CreatePR(owner, repo, title, branch, base, body)
@@ -129,6 +144,23 @@ var pushCmd = &cobra.Command{
 		}
 		return nil
 	},
+}
+
+// commitTypeFromBranch preselects the commit type from the branch prefix
+// (feature/KAN-123-… → feat). Unknown or missing prefixes default to feat.
+func commitTypeFromBranch(branch string) string {
+	prefix, _, _ := strings.Cut(branch, "/")
+	switch prefix {
+	case "feature", "feat":
+		return "feat"
+	case "fix", "bugfix":
+		return "fix"
+	case "hotfix":
+		return "hotfix"
+	case "chore":
+		return "chore"
+	}
+	return "feat"
 }
 
 func init() {
