@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/MarcoAvendano/jitrack/internal/github"
+	"github.com/MarcoAvendano/jitrack/internal/forge"
 	"github.com/MarcoAvendano/jitrack/internal/gitops"
 	"github.com/MarcoAvendano/jitrack/internal/jira"
 	"github.com/MarcoAvendano/jitrack/internal/ticket"
@@ -63,7 +63,7 @@ var pushCmd = &cobra.Command{
 		if err := cfg.RequireJira(); err != nil {
 			return err
 		}
-		if err := cfg.RequireGitHub(); err != nil {
+		if err := cfg.RequireProvider(); err != nil {
 			return err
 		}
 
@@ -110,19 +110,19 @@ var pushCmd = &cobra.Command{
 		}
 		fmt.Printf("✔ pushed %s to origin\n", branch)
 
-		owner, repo, err := resolveRepo(cfg)
+		remote, _ := gitops.RemoteURL()
+		fp, err := forge.New(cfg, remote)
 		if err != nil {
 			return err
 		}
-		gh := github.NewClient(cfg.Get("github.api_url"), cfg.Get("github.token"))
 
-		pr, err := gh.FindOpenPR(owner, repo, branch)
+		pr, err := fp.FindOpenPR(branch)
 		if err != nil {
 			return err
 		}
 		jc := jira.NewClient(cfg.Get("jira.url"), cfg.Get("jira.email"), cfg.Get("jira.token"))
 		if pr != nil {
-			fmt.Printf("✔ pull request already open: %s\n", pr.HTMLURL)
+			fmt.Printf("✔ pull request already open: %s\n", pr.URL)
 			return nil
 		}
 
@@ -131,13 +131,13 @@ var pushCmd = &cobra.Command{
 			title = fmt.Sprintf("%s: %s %s", ctype, key, issue.Summary)
 		}
 		body := fmt.Sprintf("Jira ticket: [%s](%s)", key, jc.BrowseURL(key))
-		pr, err = gh.CreatePR(owner, repo, title, branch, base, body)
+		pr, err = fp.CreatePR(title, branch, base, body)
 		if err != nil {
 			return fmt.Errorf("creating pull request (%s → %s): %w", branch, base, err)
 		}
-		fmt.Printf("✔ pull request created: %s\n", pr.HTMLURL)
+		fmt.Printf("✔ pull request created: %s\n", pr.URL)
 
-		if err := jc.AddComment(key, fmt.Sprintf("Pull request created: %s", pr.HTMLURL)); err != nil {
+		if err := jc.AddComment(key, fmt.Sprintf("Pull request created: %s", pr.URL)); err != nil {
 			fmt.Printf("⚠ could not comment PR link on %s: %v\n", key, err)
 		} else {
 			fmt.Printf("✔ commented PR link on %s\n", key)

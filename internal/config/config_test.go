@@ -70,8 +70,42 @@ func TestSetRejectsUnknownKey(t *testing.T) {
 	}
 }
 
+func TestProviderDefaultAndOverride(t *testing.T) {
+	globalPath := tempGlobal(t)
+	c, err := Load("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := c.Provider(); got != "github" {
+		t.Errorf("default Provider() = %q, want github", got)
+	}
+	if err := c.RequireProvider(); err == nil {
+		t.Error("RequireProvider with no github.token should error")
+	}
+
+	if err := Set(globalPath, "provider", "gitlab"); err != nil {
+		t.Fatal(err)
+	}
+	if err := Set(globalPath, "gitlab.token", "glpat-xxx"); err != nil {
+		t.Fatal(err)
+	}
+	c, err = Load("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := c.Provider(); got != "gitlab" {
+		t.Errorf("Provider() = %q, want gitlab", got)
+	}
+	if err := c.RequireProvider(); err != nil {
+		t.Errorf("RequireProvider with gitlab.token set: %v", err)
+	}
+	if got := c.Get("gitlab.api_url"); got != "https://gitlab.com/api/v4" {
+		t.Errorf("default gitlab.api_url = %q", got)
+	}
+}
+
 func TestValidKey(t *testing.T) {
-	for _, k := range []string{"jira.url", "github.token", "base_branch", "branch_prefixes.Bug", "transitions.start"} {
+	for _, k := range []string{"provider", "jira.url", "github.token", "gitlab.token", "gitlab.owner", "bitbucket.token", "bitbucket.username", "base_branch", "branch_prefixes.Bug", "transitions.start"} {
 		if !ValidKey(k) {
 			t.Errorf("ValidKey(%q) = false, want true", k)
 		}
