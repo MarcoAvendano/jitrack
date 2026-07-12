@@ -24,6 +24,7 @@ const (
 // staticKeys are the fixed configuration keys. branch_prefixes.* and
 // transitions.* accept arbitrary sub-keys (Jira issue types / actions).
 var staticKeys = []string{
+	"provider",
 	"jira.url",
 	"jira.email",
 	"jira.token",
@@ -31,14 +32,26 @@ var staticKeys = []string{
 	"github.api_url",
 	"github.owner",
 	"github.repo",
+	"gitlab.token",
+	"gitlab.api_url",
+	"gitlab.owner",
+	"gitlab.repo",
+	"bitbucket.token",
+	"bitbucket.username",
+	"bitbucket.api_url",
+	"bitbucket.owner",
+	"bitbucket.repo",
 	"base_branch",
 }
 
 var dynamicPrefixes = []string{"branch_prefixes.", "transitions."}
 
 var defaults = map[string]string{
+	"provider":                "github",
 	"base_branch":             "main",
 	"github.api_url":          "https://api.github.com",
+	"gitlab.api_url":          "https://gitlab.com/api/v4",
+	"bitbucket.api_url":       "https://api.bitbucket.org/2.0",
 	"branch_prefixes.default": "feature",
 	"branch_prefixes.Bug":     "fix",
 	"transitions.start":       "In Progress",
@@ -46,8 +59,10 @@ var defaults = map[string]string{
 }
 
 var envKeys = map[string]string{
-	"JITRACK_JIRA_TOKEN":   "jira.token",
-	"JITRACK_GITHUB_TOKEN": "github.token",
+	"JITRACK_JIRA_TOKEN":      "jira.token",
+	"JITRACK_GITHUB_TOKEN":    "github.token",
+	"JITRACK_GITLAB_TOKEN":    "gitlab.token",
+	"JITRACK_BITBUCKET_TOKEN": "bitbucket.token",
 }
 
 // Config is the merged view of all layers. Sources records, per key,
@@ -171,10 +186,20 @@ func (c *Config) RequireJira() error {
 	return nil
 }
 
-// RequireGitHub validates that the GitHub connection is configured.
-func (c *Config) RequireGitHub() error {
-	if c.Get("github.token") == "" {
-		return fmt.Errorf("github connection not configured (missing github.token) — run `jitrack init` or `jitrack config set github.token <token>`")
+// Provider returns the configured git provider (defaults to "github").
+func (c *Config) Provider() string {
+	if p := c.Get("provider"); p != "" {
+		return p
+	}
+	return "github"
+}
+
+// RequireProvider validates that the active git provider's connection is
+// configured (i.e. its token is set).
+func (c *Config) RequireProvider() error {
+	p := c.Provider()
+	if c.Get(p+".token") == "" {
+		return fmt.Errorf("%s connection not configured (missing %s.token) — run `jitrack init` or `jitrack config set %s.token <token>`", p, p, p)
 	}
 	return nil
 }

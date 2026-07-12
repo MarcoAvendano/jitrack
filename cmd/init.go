@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/MarcoAvendano/jitrack/internal/config"
-	"github.com/MarcoAvendano/jitrack/internal/github"
+	"github.com/MarcoAvendano/jitrack/internal/forge"
 	"github.com/MarcoAvendano/jitrack/internal/jira"
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
@@ -23,9 +23,27 @@ var initCmd = &cobra.Command{
 		jiraURL := existing.Get("jira.url")
 		jiraEmail := existing.Get("jira.email")
 		jiraToken := ""
-		ghToken := ""
+		provider := existing.Provider()
+		providerToken := ""
+		bitbucketUser := existing.Get("bitbucket.username")
 
 		form := huh.NewForm(
+			huh.NewGroup(
+				huh.NewSelect[string]().
+					Title("Git provider").
+					Description("Where your pull/merge requests live").
+					Options(huh.NewOptions(forge.Providers()...)...).
+					Value(&provider),
+			),
+			// Bitbucket authenticates with Basic auth, so it also needs a
+			// username. Hidden for the token-only providers.
+			huh.NewGroup(
+				huh.NewInput().
+					Title("Bitbucket username").
+					Description("Your Bitbucket username, or Atlassian email if using an API token").
+					Value(&bitbucketUser).
+					Validate(requireNonEmpty("Bitbucket username")),
+			).WithHideFunc(func() bool { return provider != "bitbucket" }),
 			huh.NewGroup(
 				huh.NewInput().
 					Title("Jira URL").
@@ -45,11 +63,11 @@ var initCmd = &cobra.Command{
 					Value(&jiraToken).
 					Validate(requireNonEmpty("Jira API token")),
 				huh.NewInput().
-					Title("GitHub token").
-					Description("Fine-grained PAT with Pull requests read/write — https://github.com/settings/tokens").
+					TitleFunc(func() string { return providerTokenTitle(provider) }, &provider).
+					DescriptionFunc(func() string { return providerTokenHelp(provider) }, &provider).
 					EchoMode(huh.EchoModePassword).
-					Value(&ghToken).
-					Validate(requireNonEmpty("GitHub token")),
+					Value(&providerToken).
+					Validate(requireNonEmpty("access token")),
 			),
 		)
 		if err := form.Run(); err != nil {
@@ -64,8 +82,8 @@ var initCmd = &cobra.Command{
 		}
 		fmt.Printf("✔ authenticated as %s\n", name)
 
-		fmt.Print("Validating GitHub credentials… ")
-		login, err := github.NewClient(existing.Get("github.api_url"), ghToken).Viewer()
+		fmt.Printf("Validating %s credentials… ", provider)
+		login, err := forge.Validate(provider, existing.Get(provider+".api_url"), bitbucketUser, providerToken)
 		if err != nil {
 			return fmt.Errorf("\n%w", err)
 		}
@@ -75,12 +93,17 @@ var initCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		for key, value := range map[string]string{
-			"jira.url":     jiraURL,
-			"jira.email":   jiraEmail,
-			"jira.token":   jiraToken,
-			"github.token": ghToken,
-		} {
+		values := map[string]string{
+			"provider":          provider,
+			"jira.url":          jiraURL,
+			"jira.email":        jiraEmail,
+			"jira.token":        jiraToken,
+			provider + ".token": providerToken,
+		}
+		if provider == "bitbucket" {
+			values["bitbucket.username"] = bitbucketUser
+		}
+		for key, value := range values {
 			if err := config.Set(path, key, value); err != nil {
 				return err
 			}
@@ -89,6 +112,30 @@ var initCmd = &cobra.Command{
 		fmt.Println("\nYou're set. Try: jitrack start TICKET-123")
 		return nil
 	},
+}
+
+// providerTokenTitle / providerTokenHelp render the token prompt for the
+// selected provider (the field updates live as the provider changes).
+func providerTokenTitle(provider string) string {
+	switch provider {
+	case "gitlab":
+		return "GitLab token"
+	case "bitbucket":
+		return "Bitbucket app password / API token"
+	default:
+		return "GitHub token"
+	}
+}
+
+func providerTokenHelp(provider string) string {
+	switch provider {
+	case "gitlab":
+		return "Personal access token with the 'api' scope — https://gitlab.com/-/user_settings/personal_access_tokens"
+	case "bitbucket":
+		return "App password (Pull requests: Read/Write) — https://bitbucket.org/account/settings/app-passwords/"
+	default:
+		return "Fine-grained PAT with Pull requests read/write + Contents read — https://github.com/settings/tokens"
+	}
 }
 
 func requireNonEmpty(field string) func(string) error {
