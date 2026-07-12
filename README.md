@@ -341,3 +341,7 @@ Jira only offers transitions valid from the ticket's **current** status. If `tra
 make build   # go build
 make test    # go test ./...
 ```
+
+## License
+
+Released under the [MIT License](LICENSE) — free to use, modify, and distribute.
